@@ -32,10 +32,11 @@ export default function Home() {
       })
       
       localStorage.setItem('token', response.data.access_token)
-      localStorage.setItem('username', username)
+      localStorage.setItem('username', response.data.username || username)
+      localStorage.setItem('role', response.data.role || 'user')
       router.push('/dashboard')
     } catch (err) {
-      setError('Invalid credentials. Use admin/admin123')
+      setError('Invalid credentials')
     }
     setLoading(false)
   }
@@ -54,7 +55,7 @@ export default function Home() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               style={styles.input}
-              placeholder="admin"
+              placeholder="Enter username"
               required
             />
           </div>
@@ -66,7 +67,7 @@ export default function Home() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               style={styles.input}
-              placeholder="admin123"
+              placeholder="Enter password"
               required
             />
           </div>
@@ -77,12 +78,6 @@ export default function Home() {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        
-        <div style={styles.hint}>
-          <p><strong>Default Credentials:</strong></p>
-          <p>Username: <code>admin</code></p>
-          <p>Password: <code>admin123</code></p>
-        </div>
       </div>
     </div>
   )

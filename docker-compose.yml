@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+      - ./uploaded_files:/app/uploaded_files
+    environment:
+      - JWT_SECRET=semantic-doc-intel-secret-key-change-in-production
+      - INITIAL_ADMIN_USERNAME=admin
+      - INITIAL_ADMIN_PASSWORD=admin123
+      - DATABASE_URL=sqlite:///./kochi_metro_docs.db
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

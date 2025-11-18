@@ -4,6 +4,8 @@ from typing import Optional
 class Token(BaseModel):
     access_token: str
     token_type: str
+    role: Optional[str] = None
+    username: Optional[str] = None
 
 class DocumentBase(BaseModel):
     filename: str

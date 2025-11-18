@@ -22,17 +22,27 @@ export default function UploadPage() {
     setLoading(true)
     setResult(null)
     
+    const token = localStorage.getItem('token')
+    if (!token) {
+      alert('Please login first')
+      router.push('/')
+      return
+    }
+    
     const fd = new FormData()
     fd.append('file', file)
     fd.append('department', dept)
-    fd.append('uploaded_by', localStorage.getItem('username') || 'admin')
     
     try {
       const res = await axios.post('http://localhost:8000/documents/upload', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        }
       })
       setResult(res.data)
     } catch (e) {
+      console.error('Upload error:', e)
       alert('Upload failed: ' + (e.response?.data?.detail || e.message))
     }
     setLoading(false)

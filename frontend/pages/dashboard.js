@@ -7,6 +7,7 @@ export default function Dashboard() {
   const [docs, setDocs] = useState([])
   const [loading, setLoading] = useState(true)
   const [username, setUsername] = useState('')
+  const [stats, setStats] = useState({ total_documents: 0, active_alerts: 0, misfiled_documents: 0 })
   const router = useRouter()
 
   useEffect(() => {
@@ -19,17 +20,31 @@ export default function Dashboard() {
     }
     
     setUsername(user || 'admin')
-    loadDocuments()
+    loadDocuments(token)
+    loadStats(token)
   }, [])
 
-  const loadDocuments = async () => {
+  const loadDocuments = async (token) => {
     try {
-      const response = await axios.get('http://localhost:8000/documents')
+      const response = await axios.get('http://localhost:8000/documents', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
       setDocs(response.data)
     } catch (error) {
       console.error('Failed to load documents:', error)
     }
     setLoading(false)
+  }
+
+  const loadStats = async (token) => {
+    try {
+      const response = await axios.get('http://localhost:8000/stats', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      setStats(response.data)
+    } catch (error) {
+      console.error('Failed to load stats:', error)
+    }
   }
 
   const logout = () => {
@@ -41,13 +56,13 @@ export default function Dashboard() {
   const alertDocs = docs.filter(d => {
     try {
       const alerts = JSON.parse(d.semantic_alerts || '[]')
-      return alerts.length > 0
+      return Array.isArray(alerts) && alerts.length > 0
     } catch {
       return false
     }
   })
 
-  const misfiledDocs = docs.filter(d => d.is_misfiled)
+  const misfiledDocs = docs.filter(d => d.is_misfiled === true)
 
   return (
     <div style={styles.container}>
@@ -55,6 +70,12 @@ export default function Dashboard() {
         <h1 style={styles.navTitle}>📊 Semantic Document Intelligence</h1>
         <div style={styles.navRight}>
           <span style={styles.username}>👤 {username}</span>
+          <Link href="/search">
+            <button style={styles.searchBtn}>🔍 Search Documents</button>
+          </Link>
+          <Link href="/batch-upload">
+            <button style={styles.batchUploadBtn}>📁 Batch Upload</button>
+          </Link>
           <Link href="/upload">
             <button style={styles.uploadBtn}>➕ Upload Document</button>
           </Link>
@@ -66,15 +87,15 @@ export default function Dashboard() {
         {/* Stats Cards */}
         <div style={styles.statsGrid}>
           <div style={{...styles.statCard, ...styles.statCardBlue}}>
-            <div style={styles.statNumber}>{docs.length}</div>
+            <div style={styles.statNumber}>{stats.total_documents}</div>
             <div style={styles.statLabel}>Total Documents</div>
           </div>
           <div style={{...styles.statCard, ...styles.statCardOrange}}>
-            <div style={styles.statNumber}>{alertDocs.length}</div>
+            <div style={styles.statNumber}>{stats.active_alerts}</div>
             <div style={styles.statLabel}>Active Alerts</div>
           </div>
           <div style={{...styles.statCard, ...styles.statCardRed}}>
-            <div style={styles.statNumber}>{misfiledDocs.length}</div>
+            <div style={styles.statNumber}>{stats.misfiled_documents}</div>
             <div style={styles.statLabel}>Misfiled Documents</div>
           </div>
         </div>
@@ -203,6 +224,24 @@ const styles = {
   username: {
     color: 'white',
     fontWeight: '600'
+  },
+  searchBtn: {
+    background: '#4CAF50',
+    color: 'white',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '6px',
+    fontWeight: '600',
+    cursor: 'pointer'
+  },
+  batchUploadBtn: {
+    background: '#FF9800',
+    color: 'white',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '6px',
+    fontWeight: '600',
+    cursor: 'pointer'
   },
   uploadBtn: {
     background: 'white',
